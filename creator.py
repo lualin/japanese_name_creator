@@ -156,14 +156,17 @@ def main(month, day, count):
     if status == 200:
 
         # Print success message if access is granted
-        print('Access to the url is successful\n\n')
+        print('------------------------------------\n')
+        print(f'Access status code: {status}\n')
+        print(f'Access to the {url} is successful\n')
+        
 
         # Get time of starting point
         t_start = time.time()
 
         # Call functions   
         get_girl_name(month, day, count, driver)
-        get_boy_name(month, day, count, driver)
+        # get_boy_name(month, day, count, driver)
     
         # Get time of ending point
         t_end = time.time()
@@ -178,5 +181,5 @@ def main(month, day, count):
     else:
         print('No connection')
 
-main(4, 25, 10)
+main(4, 27, 20)
 
