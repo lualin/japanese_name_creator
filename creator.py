@@ -138,7 +138,6 @@ def get_boy_name(month, day, count, driver):
             f'\nFirst Name: {f_b_first_name_en}Last Name: {f_b_last_name_en}'
         )
 
-
 # Define a headless Chrome browser and run functions
 def main(month, day, count):
 
@@ -180,3 +179,4 @@ def main(month, day, count):
         print('No connection')
 
 main(4, 25, 10)
+
