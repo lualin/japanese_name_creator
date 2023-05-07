@@ -1,6 +1,12 @@
-import time, calendar
+# Author: Lualin
+# imports
+import time
+import calendar
 import requests
+import inquirer
+import re
 
+# Selenium imports
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
@@ -10,7 +16,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
 
-#Gets girls name
+# Gets girls name
 def get_girl_name(month, day, count, driver):
 
     g_name_count_no = 0
@@ -19,49 +25,64 @@ def get_girl_name(month, day, count, driver):
     print(f'////{count} results for: {day} {month_str} (female name)////\n')
 
     while g_name_count_no < count:
-    
+
         g_name_count_no += 1
-        select_month = Select(driver.find_element(By.ID, 'month')) #Finds month input
-        select_day = Select(driver.find_element(By.ID,'day')) #Finds day input
+        select_month = Select(driver.find_element(
+            By.ID, 'month'))  # Finds month input
+        select_day = Select(driver.find_element(
+            By.ID, 'day'))  # Finds day input
 
-        select_month.select_by_value(str(month)) #Select DOB month
-        select_day.select_by_value(str(day)) #Select DOB day
+        select_month.select_by_value(str(month))  # Select DOB month
+        select_day.select_by_value(str(day))  # Select DOB day
 
-        girl_name_input = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="form"]/input[4]'))) #Waits for browser until the button to be loaded
-        girl_name_input.click() #Click the button
+        girl_name_input = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
+            (By.XPATH, '//*[@id="form"]/input[4]')))  # Waits for browser until the button to be loaded
+        girl_name_input.click()  # Click the button
 
         # Gets names in Korean
         # ------------------------------------------------------
-        p_g_first_name_kr = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[1]/div[2]/div[2]').text.strip()
-        c_g_first_name_kr = driver.find_element(By.CLASS_NAME, 'gf').text.strip()
+        p_g_first_name_kr = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[1]/div[2]/div[2]').text.strip()
+        c_g_first_name_kr = driver.find_element(
+            By.CLASS_NAME, 'gf').text.strip()
         f_g_first_name_kr = p_g_first_name_kr.replace(c_g_first_name_kr, '')
 
-        p_g_last_name_kr = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[1]/div[2]/div[1]').text.strip()
-        c_g_last_name_kr = driver.find_element(By.CLASS_NAME, 'fm').text.strip()
+        p_g_last_name_kr = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[1]/div[2]/div[1]').text.strip()
+        c_g_last_name_kr = driver.find_element(
+            By.CLASS_NAME, 'fm').text.strip()
         f_g_last_name_kr = p_g_last_name_kr.replace(c_g_last_name_kr, '')
         # ------------------------------------------------------
 
         # Gets names in Japanese
-        p_g_first_name_jp = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[2]/div[2]/div[2]').text.strip()
-        c_g_first_name_jp = driver.find_element(By.CLASS_NAME, 'gf').text.strip()
+        p_g_first_name_jp = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[2]/div[2]/div[2]').text.strip()
+        c_g_first_name_jp = driver.find_element(
+            By.CLASS_NAME, 'gf').text.strip()
         f_g_first_name_jp = p_g_first_name_jp.replace(c_g_first_name_jp, '')
 
-        p_g_last_name_jp = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[2]/div[2]/div[1]').text.strip()
-        c_g_last_name_jp = driver.find_element(By.CLASS_NAME, 'fm').text.strip()
-        f_g_last_name_jp = p_g_last_name_jp.replace(c_g_last_name_jp, '')        
+        p_g_last_name_jp = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[2]/div[2]/div[1]').text.strip()
+        c_g_last_name_jp = driver.find_element(
+            By.CLASS_NAME, 'fm').text.strip()
+        f_g_last_name_jp = p_g_last_name_jp.replace(c_g_last_name_jp, '')
         # ------------------------------------------------------
 
         # Gets names in English
-        p_g_first_name_en = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[4]/div[2]/div[2]').text.strip()
-        c_g_first_name_en = driver.find_element(By.CLASS_NAME, 'gf').text.strip()
+        p_g_first_name_en = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[4]/div[2]/div[2]').text.strip()
+        c_g_first_name_en = driver.find_element(
+            By.CLASS_NAME, 'gf').text.strip()
         f_g_first_name_en = p_g_first_name_en.replace(c_g_first_name_en, '')
 
-        p_g_last_name_en = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[4]/div[2]/div[1]').text.strip()
-        c_g_last_name_en = driver.find_element(By.CLASS_NAME, 'fm').text.strip()
-        f_g_last_name_en = p_g_last_name_en.replace(c_g_last_name_en, '')     
+        p_g_last_name_en = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[4]/div[2]/div[1]').text.strip()
+        c_g_last_name_en = driver.find_element(
+            By.CLASS_NAME, 'fm').text.strip()
+        f_g_last_name_en = p_g_last_name_en.replace(c_g_last_name_en, '')
         # ------------------------------------------------------
 
-        #Prints results 
+        # Prints results
 
         #print('Recommended name is:')
         print(f'---<<{g_name_count_no}>>---\n')
@@ -75,7 +96,9 @@ def get_girl_name(month, day, count, driver):
             f'\nFirst Name: {f_g_first_name_en}Last Name: {f_g_last_name_en}'
         )
 
-#Gets boys name
+# Gets boys name
+
+
 def get_boy_name(month, day, count, driver):
 
     b_name_count_no = 0
@@ -84,48 +107,57 @@ def get_boy_name(month, day, count, driver):
     print(f'////{count} results for: {day} {month_str} (male name)////\n')
 
     while b_name_count_no < count:
-    
+
         b_name_count_no += 1
-        select_month = Select(driver.find_element(By.ID, 'month')) #Finds month input
-        select_day = Select(driver.find_element(By.ID,'day')) #Finds day input
+        select_month = Select(driver.find_element(
+            By.ID, 'month'))  # Finds month input
+        select_day = Select(driver.find_element(
+            By.ID, 'day'))  # Finds day input
 
-        select_month.select_by_value(str(month)) #Select DOB month
-        select_day.select_by_value(str(day)) #Select DOB day
+        select_month.select_by_value(str(month))  # Select DOB month
+        select_day.select_by_value(str(day))  # Select DOB day
 
-        boy_name_input = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="form"]/input[3]'))) #Waits for browser until the button to be loaded
+        boy_name_input = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
+            (By.XPATH, '//*[@id="form"]/input[3]')))  # Waits for browser until the button to be loaded
         boy_name_input.click()
 
         # Gets names in Korean
         # ------------------------------------------------------
-        p_b_first_name_kr = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[1]/div[2]/div[2]').text 
+        p_b_first_name_kr = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[1]/div[2]/div[2]').text
         c_b_first_name_kr = driver.find_element(By.CLASS_NAME, 'gm').text
         f_b_first_name_kr = p_b_first_name_kr.replace(c_b_first_name_kr, '')
 
-        p_b_last_name_kr = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[1]/div[2]/div[1]').text
+        p_b_last_name_kr = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[1]/div[2]/div[1]').text
         c_b_last_name_kr = driver.find_element(By.CLASS_NAME, 'fm').text
         f_b_last_name_kr = p_b_last_name_kr.replace(c_b_last_name_kr, '')
         # ------------------------------------------------------
 
         # Gets names in Japanese
-        p_b_first_name_jp = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[2]/div[2]/div[2]').text
+        p_b_first_name_jp = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[2]/div[2]/div[2]').text
         c_b_first_name_jp = driver.find_element(By.CLASS_NAME, 'gm').text
         f_b_first_name_jp = p_b_first_name_jp.replace(c_b_first_name_jp, '')
 
-        p_b_last_name_jp = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[2]/div[2]/div[1]').text
+        p_b_last_name_jp = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[2]/div[2]/div[1]').text
         c_b_last_name_jp = driver.find_element(By.CLASS_NAME, 'fm').text
-        f_b_last_name_jp = p_b_last_name_jp.replace(c_b_last_name_jp, '')        
+        f_b_last_name_jp = p_b_last_name_jp.replace(c_b_last_name_jp, '')
         # ------------------------------------------------------
 
         # Gets names in English
-        p_b_first_name_en = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[4]/div[2]/div[2]').text
+        p_b_first_name_en = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[4]/div[2]/div[2]').text
         c_b_first_name_en = driver.find_element(By.CLASS_NAME, 'gm').text
         f_b_first_name_en = p_b_first_name_en.replace(c_b_first_name_en, '')
 
-        p_b_last_name_en = driver.find_element(By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[4]/div[2]/div[1]').text
+        p_b_last_name_en = driver.find_element(
+            By.XPATH, '//*[@id="contents"]/div/div[1]/div[2]/div/div[4]/div[2]/div[1]').text
         c_b_last_name_en = driver.find_element(By.CLASS_NAME, 'fm').text
-        f_b_last_name_en = p_b_last_name_en.replace(c_b_last_name_en, '')     
+        f_b_last_name_en = p_b_last_name_en.replace(c_b_last_name_en, '')
         # ------------------------------------------------------
-        #Prints results 
+        # Prints results
 
         #print('Recommended name is:')
         print(f'---<<{b_name_count_no}>>---\n')
@@ -139,35 +171,53 @@ def get_boy_name(month, day, count, driver):
         )
 
 # Define a headless Chrome browser and run functions
-def main(month, day, count):
 
+
+def main(month, day, count, gender):
+
+    # Chrome options setup
     opt = webdriver.ChromeOptions()
-    opt.add_argument('headless') #Suppress the browser with headless
+    opt.add_argument('headless')  # Suppress the browser with headless
 
-    driver = webdriver.Chrome('/Users/sean/Documents/DEV/chromedriver', options = opt) #Chrome driver location
-    driver.implicitly_wait(3) #Waits 3 secs for loading web resources
-    url = 'https://ko.enjoyjapan.co.kr/japanese_names_maker.php' #URL defined
-    driver.get(url) #Gets the defined URL
-    driver.maximize_window() #Maximize the window when open
+    # Chrome driver setup
+    driver = webdriver.Chrome(
+        '/Users/sean/Documents/DEV/chromedriver', options=opt)
+    driver.implicitly_wait(3)  # Waits 3 secs for loading web resources
+    url = 'https://ko.enjoyjapan.co.kr/japanese_names_maker.php'  # URL defined
+    driver.get(url)  # Gets the defined URL
+    driver.maximize_window()  # Maximize the window when open
 
+    # Check connection
     response = requests.get(url)
     status = response.status_code
 
+    # Get user input and convert to int
+    month_int = month['month']
+    day_int = day['day']
+    gender_str = gender['gender']
+
+    # Check connection status code and proceed if 200
     if status == 200:
 
         # Print success message if access is granted
         print('------------------------------------\n')
         print(f'Access status code: {status}\n')
         print(f'Access to the {url} is successful\n')
-        
 
         # Get time of starting point
         t_start = time.time()
 
-        # Call functions   
-        get_girl_name(month, day, count, driver)
-        # get_boy_name(month, day, count, driver)
-    
+        # Check month range
+        if month_int < 1 or month_int > 12:
+            print('Month is out of range')
+            return
+
+        # Check gender
+        if gender_str == 'M':
+            get_boy_name(month_int, day_int, count, driver)
+        else:
+            get_girl_name(month_int, day_int, count, driver)
+
         # Get time of ending point
         t_end = time.time()
 
@@ -178,8 +228,40 @@ def main(month, day, count):
         # Print time taken for getting data
         print(f'Time taken to print results: {elapsed_time}')
 
+    # Print error message if access is denied
     else:
         print('No connection')
 
-main(4, 27, 20)
+# Main function call
 
+if __name__ == '__main__':
+
+    # Input and questions config
+    count = int(input('Enter the number of results: '))
+    month_questions = [
+        inquirer.List('month',
+                      message="Select the month of birth: ",
+                      choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                      ),
+    ]
+    day_questions = [
+        inquirer.List('day',
+                        message="Select the day of birth: ",
+                        choices=[i for i in range(1, 32)],
+                        ),
+    ]
+    gender_questions = [
+        inquirer.List('gender',
+                      message="Select your gender: ",
+                      choices=['M', 'F'],
+                      ),
+    ]
+    
+    
+    # Get user input
+    month = inquirer.prompt(month_questions)
+    day = inquirer.prompt(day_questions)
+    gender = inquirer.prompt(gender_questions)
+
+    # Call main function
+    main(month, day, count, gender)
