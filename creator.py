@@ -1,5 +1,6 @@
 # Author: Lualin
 # imports
+import datetime
 import time
 import calendar
 import requests
@@ -15,9 +16,14 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
+# Database import
+import mariadb
+from db import db
+
+# ------------------------------------------------------ #
 
 # Gets girls name
-def get_girl_name(month, day, count, driver):
+def get_girl_name(month, day, count, gender, driver, conn):
 
     g_name_count_no = 0
     month_str = calendar.month_name[month]
@@ -96,10 +102,58 @@ def get_girl_name(month, day, count, driver):
             f'\nFirst Name: {f_g_first_name_en}Last Name: {f_g_last_name_en}'
         )
 
+        # Database functions call
+        try:
+            # Get cursor
+            cur = conn.cursor()
+
+            # Get the latest transaction number
+            # If there are no transactions yet, start with 1
+            # Otherwise, generate a new transaction number
+            cur.execute(
+                "SELECT TRANS_NO FROM transaction ORDER BY TRANS_NO DESC LIMIT 1")
+            latest_transaction = cur.fetchone()  # Retrieve the latest transaction number
+            if latest_transaction is None:
+                transaction_no = 10000  # If there are no transactions yet, start with 1
+            else:
+                transaction_no = latest_transaction[0] + 1  # Generate a new transaction number
+
+            # Insert transaction into DB
+            cur.execute(
+                "INSERT INTO transaction (TRANS_NO, DATE_CREATED, TIME_CREATED, GENDER, MONTH, DAY) VALUES (?, ?, ?, ?, ?, ?)",
+                (transaction_no, datetime.datetime.now().date(), datetime.datetime.now().time(), gender, month, day))
+
+            # get the generated transaction_id
+            transaction_id = cur.lastrowid
+
+            # Use the transaction_id as a foreign key in en_names table
+            cur.execute("INSERT INTO en_names (transaction_id, first_name, last_name) VALUES (?, ?, ?)",
+                        (transaction_id, f_g_first_name_en, f_g_last_name_en))
+
+            # Use the transaction_id as a foreign key in jp_names table
+            cur.execute("INSERT INTO jp_names (transaction_id, first_name, last_name) VALUES (?, ?, ?)",
+                        (transaction_id, f_g_first_name_jp, f_g_last_name_jp))
+
+            # Use the transaction_id as a foreign key in kr_names table
+            cur.execute("INSERT INTO kr_names (transaction_id, first_name, last_name) VALUES (?, ?, ?)",
+                        (transaction_id, f_g_first_name_kr, f_g_last_name_kr))
+
+            # Print success message
+            print('Data successfully inserted')
+
+            # commit the changes to the database
+            conn.commit()
+
+        except mariadb.Error as e:
+            print(f"Error connecting to MariaDB Platform: {e}")
+            sys.exit(1)
+
+        except Exception as ex:
+            print(f'Error incurring while executing SQL statement: ({ex})')
+
+
 # Gets boys name
-
-
-def get_boy_name(month, day, count, driver):
+def get_boy_name(month, day, count, gender, driver):
 
     b_name_count_no = 0
     month_str = calendar.month_name[month]
@@ -170,8 +224,57 @@ def get_boy_name(month, day, count, driver):
             f'\nFirst Name: {f_b_first_name_en}Last Name: {f_b_last_name_en}'
         )
 
-# Define a headless Chrome browser and run functions
+        # Database functions call
+        try:
+            # Get cursor
+            cur = conn.cursor()
 
+            # Get the latest transaction number
+            # If there are no transactions yet, start with 1
+            # Otherwise, generate a new transaction number
+            cur.execute(
+                "SELECT TRANS_NO FROM transaction ORDER BY TRANS_NO DESC LIMIT 1")
+            latest_transaction = cur.fetchone()  # Retrieve the latest transaction number
+            if latest_transaction is None:
+                transaction_no = 10000  # If there are no transactions yet, start with 1
+            else:
+                transaction_no = latest_transaction[0] + 1  # Generate a new transaction number
+
+            # Insert transaction into DB
+            cur.execute(
+                "INSERT INTO transaction (TRANS_NO, DATE_CREATED, TIME_CREATED, GENDER, MONTH, DAY) VALUES (?, ?, ?, ?, ?, ?)",
+                (transaction_no, datetime.datetime.now().date(), datetime.datetime.now().time(), gender, month, day))
+
+            # get the generated transaction_id
+            transaction_id = cur.lastrowid
+
+            # Use the transaction_id as a foreign key in en_names table
+            cur.execute("INSERT INTO en_names (transaction_id, first_name, last_name) VALUES (?, ?, ?)",
+                        (transaction_id, f_b_first_name_en, f_b_last_name_en))
+
+            # Use the transaction_id as a foreign key in jp_names table
+            cur.execute("INSERT INTO jp_names (transaction_id, first_name, last_name) VALUES (?, ?, ?)",
+                        (transaction_id, f_b_first_name_jp, f_b_last_name_jp))
+
+            # Use the transaction_id as a foreign key in kr_names table
+            cur.execute("INSERT INTO kr_names (transaction_id, first_name, last_name) VALUES (?, ?, ?)",
+                        (transaction_id, f_b_first_name_kr, f_b_last_name_kr))
+
+            # Print success message
+            print('Data successfully inserted')
+
+            # commit the changes to the database
+            conn.commit()
+
+        except mariadb.Error as e:
+            print(f"Error connecting to MariaDB Platform: {e}")
+            sys.exit(1)
+
+        except Exception as ex:
+            print(f'Error incurring while executing SQL statement: ({ex})')
+
+
+# Define a headless Chrome browser and run functions
 
 def main(month, day, count, gender):
 
@@ -211,12 +314,27 @@ def main(month, day, count, gender):
         if month_int < 1 or month_int > 12:
             print('Month is out of range')
             return
+        
+        # Connect to database
+        conn = db.connect()
+        print('Connected to database')
 
-        # Check gender
+        # Check gender and run corresponding functions
         if gender_str == 'M':
-            get_boy_name(month_int, day_int, count, driver)
+            try:
+                get_boy_name(month_int, day_int, count, gender_str, driver, conn)
+
+            # If there is an error, print error message
+            except:
+                print('Error: Please try again')
         else:
-            get_girl_name(month_int, day_int, count, driver)
+            try:           
+                get_girl_name(month_int, day_int, count, gender_str, driver, conn)
+
+            # If there is an error, print error message
+            except:
+                print('Error: Please try again')
+            
 
         # Get time of ending point
         t_end = time.time()
@@ -227,6 +345,10 @@ def main(month, day, count, gender):
 
         # Print time taken for getting data
         print(f'Time taken to print results: {elapsed_time}')
+
+        # Close database connection
+        conn.close()
+        print('Database connection closed')
 
     # Print error message if access is denied
     else:
@@ -246,9 +368,9 @@ if __name__ == '__main__':
     ]
     day_questions = [
         inquirer.List('day',
-                        message="Select the day of birth: ",
-                        choices=[i for i in range(1, 32)],
-                        ),
+                      message="Select the day of birth: ",
+                      choices=[i for i in range(1, 32)],
+                      ),
     ]
     gender_questions = [
         inquirer.List('gender',
@@ -256,12 +378,21 @@ if __name__ == '__main__':
                       choices=['M', 'F'],
                       ),
     ]
-    
-    
+
     # Get user input
     month = inquirer.prompt(month_questions)
     day = inquirer.prompt(day_questions)
     gender = inquirer.prompt(gender_questions)
 
-    # Call main function
-    main(month, day, count, gender)
+    # Try to connect to database and run main function
+    try:
+        # Call main function
+        main(month, day, count, gender)
+
+    except TypeError as type_err: # Catch type error
+        print(f'Invalid type {type_err=}, {type(type_err)=}')
+    except ValueError: # Catch value error
+        print("Could not convert data to an integer.")
+    except Exception as err: # Catch other errors
+        print(f"Unexpected {err=}, {type(err)=}")
+        raise
